@@ -1,4 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
+Set<String> _parseDictionary(String response) {
+  return response
+      .split('\n')
+      .map((word) => word.trim().toLowerCase())
+      .where((word) => word.isNotEmpty)
+      .toSet();
+}
 
 class WordService {
   static final WordService _instance = WordService._internal();
@@ -13,12 +22,8 @@ class WordService {
         'assets/dictionnaire.txt',
       );
 
-      // On découpe, on nettoie les '\r' invisibles, et on passe en minuscules
-      _words = response
-          .split('\n')
-          .map((word) => word.trim().toLowerCase())
-          .where((word) => word.isNotEmpty)
-          .toSet();
+      // On délègue le découpage à un thread secondaire (Isolate) pour éviter le blocage
+      _words = await compute(_parseDictionary, response);
 
       print("✅ Dictionnaire chargé : ${_words.length} mots !");
     } catch (e) {

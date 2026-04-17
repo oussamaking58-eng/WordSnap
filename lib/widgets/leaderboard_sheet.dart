@@ -164,13 +164,14 @@ class _LeaderboardSheetState extends State<LeaderboardSheet> {
   }
 
   Widget _buildList(List<Map<String, dynamic>> list) {
-    if (list.isEmpty)
+    if (list.isEmpty) {
       return const Center(
         child: Text(
           "Aucun score trouvé",
           style: TextStyle(color: Colors.white54),
         ),
       );
+    }
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20),

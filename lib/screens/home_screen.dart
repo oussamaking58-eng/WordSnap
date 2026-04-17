@@ -21,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _timerStream = Stream.periodic(const Duration(seconds: 1));
+    _timerStream = Stream.periodic(const Duration(seconds: 1)).asBroadcastStream();
   }
 
   @override
@@ -40,8 +40,8 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       PageRouteBuilder(
-        pageBuilder: (_, animation, __) => GameScreen(level: level),
-        transitionsBuilder: (_, animation, __, child) {
+        pageBuilder: (_, animation, _) => GameScreen(level: level),
+        transitionsBuilder: (_, animation, _, child) {
           return FadeTransition(
             opacity: animation,
             child: SlideTransition(
@@ -117,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showChallengeDialog() {
-    TextEditingController _codeController = TextEditingController();
+    TextEditingController codeController = TextEditingController();
 
     showDialog(
       context: context,
@@ -125,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppColors.surface,
         title: const Text("Entrer un code", style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
         content: TextField(
-          controller: _codeController,
+          controller: codeController,
           style: const TextStyle(color: AppColors.textPrimary),
           decoration: const InputDecoration(
             hintText: "Ex: BONJOUR",
@@ -144,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.purple),
             onPressed: () {
-              final code = _codeController.text.trim().toUpperCase();
+              final code = codeController.text.trim().toUpperCase();
               if (code.length >= 7) {
                 Navigator.pop(context);
                 _startChallenge(code);
@@ -173,8 +173,8 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       PageRouteBuilder(
-        pageBuilder: (_, animation, __) => GameScreen(level: level, fixedLetters: fixedLetters),
-        transitionsBuilder: (_, animation, __, child) {
+        pageBuilder: (_, animation, _) => GameScreen(level: level, fixedLetters: fixedLetters),
+        transitionsBuilder: (_, animation, _, child) {
           return FadeTransition(
             opacity: animation,
             child: SlideTransition(

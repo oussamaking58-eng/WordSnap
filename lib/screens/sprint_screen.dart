@@ -118,7 +118,9 @@ class _SprintScreenState extends State<SprintScreen> with TickerProviderStateMix
     HapticFeedback.lightImpact();
     setState(() {
       _currentWord = '';
-      for (int i = 0; i < _selected.length; i++) _selected[i] = false;
+      for (int i = 0; i < _selected.length; i++) {
+        _selected[i] = false;
+      }
     });
   }
 

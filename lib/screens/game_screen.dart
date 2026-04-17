@@ -267,7 +267,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     HapticFeedback.lightImpact();
     setState(() {
       currentWord = '';
-      for (int i = 0; i < selected.length; i++) selected[i] = false;
+      for (int i = 0; i < selected.length; i++) {
+        selected[i] = false;
+      }
     });
   }
 
@@ -300,7 +302,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       _showScorePop = true;
       _wordValid = true;
       currentWord = '';
-      for (int i = 0; i < selected.length; i++) selected[i] = false;
+      for (int i = 0; i < selected.length; i++) {
+        selected[i] = false;
+      }
     });
 
     _scorePopController.forward(from: 0);

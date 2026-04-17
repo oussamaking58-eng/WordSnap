@@ -15,9 +15,11 @@ void main() async {
   // 2. Initialiser Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // 3. Connexion anonyme immédiate
+  // 3. Connexion anonyme immédiate (avec timeout pour éviter un blocage)
   try {
-    final userCredential = await FirebaseAuth.instance.signInAnonymously();
+    final userCredential = await FirebaseAuth.instance
+        .signInAnonymously()
+        .timeout(const Duration(seconds: 5));
     print(
       "✅ Joueur connecté silencieusement avec l'ID : ${userCredential.user?.uid}",
     );
