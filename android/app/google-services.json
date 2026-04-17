@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "541586682501",
+    "project_id": "wordsnap-6ef7a",
+    "storage_bucket": "wordsnap-6ef7a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:541586682501:android:e640c86fe6263816d9afec",
+        "android_client_info": {
+          "package_name": "com.example.wordsnap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPzdyUYCsAqoRDm7P_I77549xf5ysNvyQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
