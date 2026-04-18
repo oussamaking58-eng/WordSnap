@@ -1,57 +1,42 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'firebase_options.dart';
-import 'screens/home_screen.dart';
-import 'services/lives_service.dart';
-import 'services/score_service.dart';
-import 'services/word_service.dart';
+import 'screens/splash_screen.dart';
 
 void main() async {
   // 1. S'assurer que les bindings Flutter sont prêts
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 2. Initialiser Firebase
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  // 3. Connexion anonyme immédiate (avec timeout pour éviter un blocage)
+  // 2. Initialiser Firebase très rapidement pour que l'app se lance
   try {
-    final userCredential = await FirebaseAuth.instance
-        .signInAnonymously()
-        .timeout(const Duration(seconds: 5));
-    print(
-      "✅ Joueur connecté silencieusement avec l'ID : ${userCredential.user?.uid}",
-    );
+     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   } catch (e) {
-    print("❌ Erreur lors de la connexion anonyme : $e");
+     print("Erreur Firebase: $e");
   }
 
-  // 4. Charger TOUS les services vitaux
-  // 👈 On a mis le dictionnaire ici avec un "await" pour forcer
-  // l'application à attendre qu'il soit prêt avant de s'afficher.
-  await Future.wait([
-    LivesService().load(),
-    ScoreService().load(),
-    WordService().loadDictionary(),
-  ]);
-
-  print("📚 Tous les services et le dictionnaire sont prêts !");
-
-  // 5. LANCER L'APPLICATION
-  runApp(const WordSnapApp());
+  // 3. LANCER L'APPLICATION IMMÉDIATEMENT SUR LE SPLASH SCREEN
+  // Le reste du chargement (Services, Dictionnaires, Auth) se fera dans le SplashScreen.
+  runApp(const LingoSnapApp());
 }
 
-class WordSnapApp extends StatelessWidget {
-  const WordSnapApp({super.key});
+class LingoSnapApp extends StatelessWidget {
+  const LingoSnapApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'WordSnap',
+      title: 'LingoSnap',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(), // Tu pourras remettre ton AppTheme.dark() ici
-      home: const HomeScreen(),
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: const Color(0xFF0A051A), // Fond très sombre
+        colorScheme: const ColorScheme.dark(
+           primary: Color(0xFFA855F7), // Purple
+           secondary: Color(0xFFF472B6), // Pink
+           tertiary: Color(0xFF22D3EE), // Cyan
+        ),
+      ),
+      home: const SplashScreen(),
     );
   }
 }

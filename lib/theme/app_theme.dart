@@ -5,12 +5,14 @@ class AppColors {
   static const Color bg = Color(0xFF07071A);
   static const Color surface = Color(0xFF0D0D1F);
   static const Color surface2 = Color(0xFF13132A);
+  static const Color cardBg = Color(0xFF1E1E3F);
 
   // Accents
   static const Color purple = Color(0xFFA855F7);
   static const Color cyan = Color(0xFF22D3EE);
   static const Color pink = Color(0xFFE879F9);
   static const Color green = Color(0xFF4ADE80);
+  static const Color orange = Color(0xFFFB923C);
   static const Color yellow = Color(0xFFFACC15);
   static const Color red = Color(0xFFF43F5E);
 

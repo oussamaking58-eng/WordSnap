@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 
 import '../services/sound_service.dart';
 import '../services/word_service.dart';
+import '../services/language_service.dart';
 import '../theme/app_theme.dart';
 import 'results_screen.dart';
 
@@ -284,7 +285,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     }
 
     // Validation dictionnaire
-    if (!_wordService.isValidWord(currentWord)) {
+    if (!_wordService.isValidWord(currentWord, LanguageService().currentLanguage)) {
       HapticFeedback.heavyImpact();
       _showInvalidFeedback('Mot invalide');
       return;

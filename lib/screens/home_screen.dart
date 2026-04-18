@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:ui';
 import '../theme/app_theme.dart';
 import '../services/lives_service.dart';
 import '../services/score_service.dart';
-import 'game_screen.dart';
 import 'sprint_screen.dart';
-import '../widgets/leaderboard_sheet.dart'; // 👈 TON NOUVEL IMPORT EST LÀ
+import 'lingo_screen.dart';
+import '../widgets/leaderboard_sheet.dart';
+import '../widgets/settings_sheet.dart';
+import '../widgets/logo_cube.dart';
+import '../widgets/shop_sheet.dart';
+import 'lingo_map_screen.dart';
+import '../services/daily_reward_service.dart';
+import '../widgets/daily_reward_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,42 +29,20 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _timerStream = Stream.periodic(const Duration(seconds: 1)).asBroadcastStream();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  void _onModeTap(BuildContext context, GameLevel level) async {
-    if (!_livesService.hasLives) {
-      _showNoLivesDialog(context);
-      return;
-    }
-    await _livesService.consumeLife();
-    if (!mounted) return;
     
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (_, animation, _) => GameScreen(level: level),
-        transitionsBuilder: (_, animation, _, child) {
-          return FadeTransition(
-            opacity: animation,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.05),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeOutCubic,
-              )),
-              child: child,
-            ),
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 400),
-      ),
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (DailyRewardService().canClaimToday()) {
+        _showDailyReward();
+      }
+    });
+  }
+
+  void _showDailyReward() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const DailyRewardSheet(),
     ).then((_) => setState(() {}));
   }
 
@@ -116,401 +101,479 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showChallengeDialog() {
-    TextEditingController codeController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text("Entrer un code", style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
-        content: TextField(
-          controller: codeController,
-          style: const TextStyle(color: AppColors.textPrimary),
-          decoration: const InputDecoration(
-            hintText: "Ex: BONJOUR",
-            hintStyle: TextStyle(color: AppColors.textSecondary),
-            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.border)),
-            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.purple)),
-          ),
-          autofocus: true,
-          textCapitalization: TextCapitalization.characters,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context), 
-            child: const Text("Annuler", style: TextStyle(color: AppColors.textSecondary))
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.purple),
-            onPressed: () {
-              final code = codeController.text.trim().toUpperCase();
-              if (code.length >= 7) {
-                Navigator.pop(context);
-                _startChallenge(code);
-              }
-            },
-            child: const Text("C'est parti !", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _startChallenge(String code) async {
+  void _onModeTap(BuildContext context, Widget screen) async {
     if (!_livesService.hasLives) {
       _showNoLivesDialog(context);
       return;
     }
     await _livesService.consumeLife();
     if (!mounted) return;
-
-    List<String> fixedLetters = code.split('');
-    GameLevel level = GameLevel.debutant;
-    if (fixedLetters.length == 8) level = GameLevel.intermediaire;
-    if (fixedLetters.length >= 9) level = GameLevel.expert;
-
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (_, animation, _) => GameScreen(level: level, fixedLetters: fixedLetters),
-        transitionsBuilder: (_, animation, _, child) {
-          return FadeTransition(
-            opacity: animation,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.05),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
-              child: child,
-            ),
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 400),
-      ),
-    );
+    
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen))
+      .then((_) => setState(() {}));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF1A0535), AppColors.bg],
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(context), // On passe le context ici !
-                const SizedBox(height: 16),
-                _buildStreakBanner(),
-                const SizedBox(height: 16),
-                _buildBestScore(),
-                const SizedBox(height: 16),
-                _buildModeGrid(context),
-              ],
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF0F021A), Color(0xFF1A0535)],
+              ),
             ),
           ),
+          Positioned(
+            top: 100,
+            left: -50,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.purple.withOpacity(0.3),
+              ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+                child: Container(color: Colors.transparent),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 200,
+            right: -50,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.cyan.withOpacity(0.2),
+              ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
+                child: Container(color: Colors.transparent),
+              ),
+            ),
+          ),
+          SafeArea(
+          child: Column(
+            children: [
+              _buildTopStats(),
+              _buildHeader(context),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 10),
+                      const SizedBox(height: 20),
+                      _buildDashboard(),
+                      const SizedBox(height: 30),
+                      const Text(
+                        "JOUER",
+                        style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 2),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildHeroCard(context, () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const LingoMapScreen()),
+                        ).then((_) => setState(() {}));
+                      }),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(child: _buildSecondaryCard(context, "Sprint", "Contre-la-montre", '⚡', const [Color(0xFF0F766E), Color(0xFF14B8A6)], const SprintScreen())),
+                          const SizedBox(width: 16),
+                          Expanded(child: _buildSecondaryCard(context, "Duel", "Multijoueur", '⚔️', const [Color(0xFF9F1239), Color(0xFFF43F5E)], null)), // Null = Coming Soon
+                        ],
+                      ),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopStats() {
+    return StreamBuilder<void>(
+      stream: _timerStream,
+      builder: (context, snapshot) {
+        final currentLives = _livesService.lives;
+        final coins = _scoreService.coins;
+        
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          child: Row(
+            children: [
+              // Vies
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0x1F22D3EE),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0x4022D3EE)),
+                ),
+                child: Row(
+                  children: [
+                    const Text('❤️', style: TextStyle(fontSize: 14)),
+                    const SizedBox(width: 6),
+                    Text('$currentLives', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Coins
+              GestureDetector(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => const ShopSheet(),
+                  ).then((_) => setState(() {}));
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Text('🪙', style: TextStyle(fontSize: 14)),
+                      const SizedBox(width: 6),
+                      Text('$coins', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.add_circle, size: 16, color: Colors.amber),
+                    ],
+                  ),
+                ),
+              ),
+              const Spacer(),
+              if (currentLives < LivesService.maxLives)
+                Text(
+                  _livesService.timeUntilNextLifeString,
+                  style: const TextStyle(fontSize: 12, color: AppColors.cyan, fontWeight: FontWeight.w600),
+                ),
+            ],
+          ),
+        );
+      }
+    );
+  }
+
+  Widget _buildGiftButton() {
+    bool hasReward = DailyRewardService().canClaimToday();
+    return GestureDetector(
+      onTap: _showDailyReward,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: hasReward ? AppColors.purple.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+          shape: BoxShape.circle,
+          border: Border.all(color: hasReward ? AppColors.purple : Colors.white24),
+          boxShadow: hasReward ? [BoxShadow(color: AppColors.purple.withOpacity(0.3), blurRadius: 10)] : [],
+        ),
+        child: Text(
+          hasReward ? '🎁' : '📅',
+          style: const TextStyle(fontSize: 16),
         ),
       ),
     );
   }
 
-  // 👇 L'EN-TÊTE MODIFIÉ AVEC LE BOUTON TROPHÉE 👇
   Widget _buildHeader(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            RichText(
-              text: const TextSpan(
-                children: [
-                  TextSpan(text: 'Word', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: AppColors.purple)),
-                  TextSpan(text: 'Snap', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: AppColors.cyan)),
-                ],
-              ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    children: [
+                      LogoCube(letter: 'L', color: AppColors.purple, size: 22),
+                      LogoCube(letter: 'I', color: AppColors.purple, size: 22),
+                      LogoCube(letter: 'N', color: AppColors.purple, size: 22),
+                      LogoCube(letter: 'G', color: AppColors.purple, size: 22),
+                      LogoCube(letter: 'O', color: AppColors.purple, size: 22),
+                      const SizedBox(width: 4),
+                      LogoCube(letter: 'S', color: AppColors.cyan, size: 22),
+                      LogoCube(letter: 'N', color: AppColors.cyan, size: 22),
+                      LogoCube(letter: 'A', color: AppColors.cyan, size: 22),
+                      LogoCube(letter: 'P', color: AppColors.cyan, size: 22),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  "L'ULTIME DÉFI LINGUISTIQUE",
+                  style: TextStyle(fontSize: 9, color: AppColors.textSecondary, letterSpacing: 2.5, fontWeight: FontWeight.w600),
+                ),
+              ],
             ),
-            const Text(
-              'LE JEU DE MOTS',
-              style: TextStyle(fontSize: 9, color: AppColors.textSecondary, letterSpacing: 3),
-            ),
-          ],
-        ),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 🏆 LE NOUVEAU BOUTON CLASSEMENT 🏆
-            GestureDetector(
-              onTap: () {
+          ),
+          const SizedBox(width: 16), // Espace ajouté ici pour aérer
+          Row(
+            children: [
+              _buildIconButton(Icons.settings, () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => const SettingsSheet(),
+                );
+              }),
+              const SizedBox(width: 10),
+              _buildIconButton(Icons.emoji_events, () {
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true, 
                   backgroundColor: Colors.transparent, 
                   builder: (context) => const LeaderboardSheet(),
                 );
-              },
-              child: Container(
-                margin: const EdgeInsets.only(right: 16, top: 4),
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.surface, // Fond légèrement sombre
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.amber.withOpacity(0.5), width: 1.5),
-                  boxShadow: [
-                    BoxShadow(color: Colors.amber.withOpacity(0.2), blurRadius: 8),
-                  ],
-                ),
-                child: const Text('🏆', style: TextStyle(fontSize: 18)),
-              ),
-            ),
-            
-            // ❤️ LES VIES (Optimisé avec StreamBuilder)
-            StreamBuilder<void>(
-              stream: _timerStream,
-              builder: (context, snapshot) {
-                final currentLives = _livesService.lives;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    const Text('VIES', style: TextStyle(fontSize: 9, color: AppColors.textSecondary, letterSpacing: 2)),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: List.generate(LivesService.maxLives, (i) {
-                        final active = i < currentLives;
-                        return Container(
-                          margin: const EdgeInsets.only(left: 4),
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: active ? const LinearGradient(colors: [Color(0xFFF472B6), AppColors.pink]) : null,
-                            color: active ? null : AppColors.border,
-                          ),
-                        );
-                      }),
-                    ),
-                    if (currentLives < LivesService.maxLives)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text('+1 dans ${_livesService.timeUntilNextLifeString}', style: const TextStyle(fontSize: 9, color: AppColors.purple, fontWeight: FontWeight.w600)),
-                      ),
-                  ],
-                );
-              }
-            ),
-          ],
+              }, isGold: true),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIconButton(IconData icon, VoidCallback onTap, {bool isGold = false}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          shape: BoxShape.circle,
+          border: Border.all(color: isGold ? Colors.amber.withOpacity(0.5) : Colors.white24),
+          boxShadow: isGold ? [BoxShadow(color: Colors.amber.withOpacity(0.2), blurRadius: 8)] : null,
         ),
-      ],
-    );
-  }
-
-  Widget _buildStreakBanner() {
-    final streak = _scoreService.streak;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0x1FA855F7),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0x40A855F7)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(colors: [Color(0xFFF97316), Color(0xFFFACC15)]),
-            ),
-            child: const Center(child: Text('🔥', style: TextStyle(fontSize: 18))),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('$streak', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.purple)),
-              Text(streak == 1 ? 'jour de streak' : 'jours de streak', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-            ],
-          ),
-          const Spacer(),
-          Column(
-            children: [
-              Text(streak >= 7 ? '🏆' : streak >= 3 ? '⭐' : '🎯', style: const TextStyle(fontSize: 22)),
-              const SizedBox(height: 2),
-              Text(streak >= 7 ? 'Légendaire' : streak >= 3 ? 'En feu !' : 'Objectif 7j', style: const TextStyle(fontSize: 9, color: AppColors.textSecondary)),
-            ],
-          ),
-        ],
+        child: Icon(icon, size: 22, color: isGold ? Colors.amber : Colors.white),
       ),
     );
   }
 
-  Widget _buildBestScore() {
-    final best = _scoreService.bestScore;
-    final total = _scoreService.totalGames;
-    
-    if (best == 0) return const SizedBox();
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        children: [
-          const Text('🏅', style: TextStyle(fontSize: 20)),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('MEILLEUR SCORE', style: TextStyle(fontSize: 9, color: AppColors.textSecondary, letterSpacing: 2)),
-              ShaderMask(
-                shaderCallback: (bounds) => const LinearGradient(colors: [AppColors.purple, AppColors.cyan]).createShader(bounds),
-                child: Text('$best pts', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white)),
-              ),
-            ],
-          ),
-          const Spacer(),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              const Text('PARTIES', style: TextStyle(fontSize: 9, color: AppColors.textSecondary, letterSpacing: 2)),
-              Text('$total', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.cyan)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildModeGrid(BuildContext context) {
+  Widget _buildLivesBanner() {
     return StreamBuilder<void>(
       stream: _timerStream,
       builder: (context, snapshot) {
-        return Column(
-          children: [
-            GestureDetector(
-          onTap: () => _onModeTap(context, GameLevel.debutant),
-          child: _buildModeCard(
-            icon: '☀️', name: 'Défi du Jour', desc: '7 lettres — 90 sec',
-            gradient: const [Color(0xFF1A0535), Color(0x33A855F7)],
-            borderColor: const Color(0x50A855F7), badge: 'NOUVEAU', fullWidth: true,
+        final currentLives = _livesService.lives;
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0x1F22D3EE),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0x4022D3EE)),
           ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: () => _onModeTap(context, GameLevel.debutant),
-                child: _buildModeCard(
-                  icon: '⚡', name: 'Classique', desc: '7 lettres — 90 sec',
-                  gradient: const [Color(0x1222D3EE), Color(0x0622D3EE)],
-                  borderColor: const Color(0x3022D3EE),
-                ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Text('❤️', style: TextStyle(fontSize: 20)),
+                  const SizedBox(width: 8),
+                  Text('$currentLives / ${LivesService.maxLives}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                ],
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: GestureDetector(
-                onTap: () => _onModeTap(context, GameLevel.intermediaire),
-                child: _buildModeCard(
-                  icon: '⚔️', name: 'Duel', desc: '8 lettres — 75 sec',
-                  gradient: const [Color(0x12F43F5E), Color(0x06F43F5E)],
-                  borderColor: const Color(0x30F43F5E),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const SprintScreen()));
-          },
-          child: _buildModeCard(
-            icon: '⏱️', name: 'Mode Sprint', desc: 'Contre-la-montre infini',
-            gradient: const [Color(0x124ADE80), Color(0x064ADE80)],
-            borderColor: const Color(0x304ADE80), fullWidth: true,
+              if (currentLives < LivesService.maxLives)
+                Text(
+                  '+1 vie dans ${_livesService.timeUntilNextLifeString}',
+                  style: const TextStyle(fontSize: 12, color: AppColors.cyan, fontWeight: FontWeight.w600),
+                )
+              else
+                const Text('Vies au maximum', style: TextStyle(fontSize: 12, color: AppColors.cyan)),
+            ],
           ),
-        ),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: _showChallengeDialog,
-          child: _buildModeCard(
-            icon: '🔑', name: 'Entrer un Code', desc: 'Rejoins le défi d\'un ami',
-            gradient: const [Color(0x12FACC15), Color(0x06FACC15)],
-            borderColor: const Color(0x30FACC15), fullWidth: true,
-          ),
-        ),
-          ],
         );
       }
     );
   }
 
-  Widget _buildModeCard({
-    required String icon, required String name, required String desc,
-    required List<Color> gradient, required Color borderColor,
-    String? badge, bool fullWidth = false,
-  }) {
-    final hasLives = _livesService.hasLives;
+  Widget _buildDashboard() {
+    final streak = _scoreService.streak;
+    final best = _scoreService.bestScore;
     
-    return Opacity(
-      opacity: (hasLives || name == 'Mode Sprint') ? 1.0 : 0.5,
-      child: Container(
-        width: fullWidth ? double.infinity : null,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: gradient),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: borderColor),
+    return Row(
+      children: [
+        // Carte Streak
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  border: Border.all(color: Colors.white24, width: 1.5),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('DÉFI QUOTIDIEN', style: TextStyle(fontSize: 10, color: AppColors.textSecondary, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text('🔥', style: TextStyle(fontSize: 28)),
+                        const SizedBox(width: 8),
+                        Text('$streak', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.orangeAccent)),
+                        const Spacer(),
+                        _buildGiftButton(),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
-        child: Stack(
-          children: [
-            Column(
+        const SizedBox(width: 16),
+        // Carte Meilleur Score
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  border: Border.all(color: Colors.white24, width: 1.5),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('MEILLEUR SCORE', style: TextStyle(fontSize: 10, color: AppColors.textSecondary, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text('🏅', style: TextStyle(fontSize: 28)),
+                        const SizedBox(width: 8),
+                        Text('$best', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.cyan)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeroCard(BuildContext context, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.purple.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.purple.withOpacity(0.5), width: 1.5),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.purple.withOpacity(0.2),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(color: AppColors.purple.withOpacity(0.3), shape: BoxShape.circle),
+                      child: const Text('🎯', style: TextStyle(fontSize: 28)),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(color: AppColors.purple, borderRadius: BorderRadius.circular(12)),
+                      child: const Text('MODE AVENTURE', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const Text('Lingo Snap', style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900, letterSpacing: 2)),
+                const SizedBox(height: 4),
+                const Text('Complétez la saga des mots mystères.', style: TextStyle(color: Colors.white70, fontSize: 13)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecondaryCard(BuildContext context, String title, String subtitle, String icon, List<Color> gradient, Widget? screen) {
+    bool isLocked = screen == null;
+    return GestureDetector(
+      onTap: screen != null ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => screen)) : null,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            height: 160, // Augmenté pour éviter les débordements
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: gradient[0].withOpacity(0.15),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: gradient[0].withOpacity(0.5), width: 1.5),
+            ),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 24, height: 24,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(colors: [AppColors.purple, AppColors.pink]),
-                  ),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: gradient[0].withOpacity(0.3), shape: BoxShape.circle),
+                  child: Text(icon, style: const TextStyle(fontSize: 20)),
                 ),
-                const SizedBox(height: 8),
-                Text('$icon $name', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                const Spacer(),
+                Text(title, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 2),
-                Text(desc, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                Text(subtitle, style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 10)),
+                if (isLocked) 
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text('BIENTÔT', style: TextStyle(color: gradient[0], fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                  ),
               ],
             ),
-            if (badge != null)
-              Positioned(
-                top: 0, right: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [AppColors.purple, AppColors.cyan]),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(badge, style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w700, color: Colors.white)),
-                ),
-              ),
-            if (!hasLives && name != 'Mode Sprint')
-              const Positioned(top: 0, right: 0, child: Text('❤️', style: TextStyle(fontSize: 16))),
-          ],
+          ),
         ),
       ),
     );

@@ -7,6 +7,7 @@ import 'dart:math';
 import '../theme/app_theme.dart';
 import '../services/letter_generator.dart';
 import '../services/word_service.dart';
+import '../services/language_service.dart';
 import '../services/firebase_storage_service.dart';
 import '../widgets/combo_text.dart';
 
@@ -127,7 +128,7 @@ class _SprintScreenState extends State<SprintScreen> with TickerProviderStateMix
   void _validateWord() {
     if (_currentWord.length < 2) return;
 
-    if (!_wordService.isValidWord(_currentWord)) {
+    if (!_wordService.isValidWord(_currentWord, LanguageService().currentLanguage)) {
       HapticFeedback.heavyImpact();
       _showInvalidFeedback();
       return;
