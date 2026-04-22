@@ -14,6 +14,8 @@ workflows:
         script: |
           # Force Deployment Target to 13.0 in project file
           find . -name "project.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*/IPHONEOS_DEPLOYMENT_TARGET = 13.0/g' {} +
+          # Delete stale registrants
+          rm -f ios/Runner/GeneratedPluginRegistrant.*
           flutter build ios --config-only --no-codesign
           cd ios
           rm -rf Pods Podfile.lock

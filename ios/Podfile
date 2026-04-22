@@ -1,31 +1,25 @@
-# Safe load of Flutter helper script
-flutter_helper_path = File.join(File.dirname(File.realpath(__FILE__)), 'Flutter', 'generated_helper.rb')
-if File.exist?(flutter_helper_path)
-  load flutter_helper_path
-end
+load File.join(File.dirname(File.realpath(__FILE__)), 'Flutter', 'generated_helper.rb')
 
 platform :ios, '13.0'
 
+# Force Swift compatibility and static linkage for plugins
+use_frameworks! :linkage => :static
+
 target 'Runner' do
-  use_frameworks!
   use_modular_headers!
 
-  # Only run if the helper was successfully loaded
-  if respond_to?(:flutter_install_all_ios_pods)
-    flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-  end
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
 
 post_install do |installer|
   installer.pods_project.targets.each do |target|
-    # Only run if the helper was successfully loaded
-    if respond_to?(:flutter_additional_ios_build_settings)
-      flutter_additional_ios_build_settings(target)
-    end
+    flutter_additional_ios_build_settings(target)
     
     target.build_configurations.each do |config|
+      # Essential for Swift plugins compatibility
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
       config.build_settings['ENABLE_BITCODE'] = 'NO'
+      config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
     end
   end
 end
