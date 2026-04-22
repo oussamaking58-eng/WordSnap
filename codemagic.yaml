@@ -10,12 +10,12 @@ workflows:
     scripts:
       - name: Get Flutter dependencies
         script: flutter pub get
-      - name: Prepare iOS configuration
-        script: flutter build ios --config-only --no-codesign
-      - name: Install CocoaPods
+      - name: Configure iOS
         script: |
+          flutter build ios --config-only --no-codesign
           cd ios
-          pod install
+          rm -rf Pods Podfile.lock
+          pod install --repo-update
       - name: Flutter build iOS
         script: |
           flutter build ios --no-codesign
