@@ -40,6 +40,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       // 2. Chargement des services légers
       setState(() { _statusText = 'Chargement du profil...'; _progress = 0.5; });
       await Future.wait([
+        LanguageService().load(),
         LivesService().load(),
         ScoreService().load(),
         DailyRewardService().load(),
@@ -82,66 +83,138 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedBuilder(
-              animation: _glowAnimation,
-              builder: (context, child) {
-                return Transform.translate(
-                  offset: Offset(0, -_glowAnimation.value * 5),
+      backgroundColor: const Color(0xFF05010D),
+      body: Stack(
+        children: [
+          // Background Glows
+          Positioned(
+            top: -100,
+            right: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.purple.withValues(alpha: 0.1),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -50,
+            left: -50,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.cyan.withValues(alpha: 0.1),
+              ),
+            ),
+          ),
+          
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedBuilder(
+                  animation: _glowAnimation,
+                  builder: (context, child) {
+                    return Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            LogoCube(letter: 'L', color: AppColors.purple, size: 55),
+                            LogoCube(letter: 'I', color: AppColors.purple, size: 55),
+                            LogoCube(letter: 'N', color: AppColors.purple, size: 55),
+                            LogoCube(letter: 'G', color: AppColors.purple, size: 55),
+                            LogoCube(letter: 'O', color: AppColors.purple, size: 55),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            LogoCube(letter: 'S', color: AppColors.cyan, size: 55),
+                            LogoCube(letter: 'N', color: AppColors.cyan, size: 55),
+                            LogoCube(letter: 'A', color: AppColors.cyan, size: 55),
+                            LogoCube(letter: 'P', color: AppColors.cyan, size: 55),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 100),
+                
+                // Progress Section
+                SizedBox(
+                  width: 240,
                   child: Column(
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          LogoCube(letter: 'L', color: AppColors.purple, size: 45),
-                          LogoCube(letter: 'I', color: AppColors.purple, size: 45),
-                          LogoCube(letter: 'N', color: AppColors.purple, size: 45),
-                          LogoCube(letter: 'G', color: AppColors.purple, size: 45),
-                          LogoCube(letter: 'O', color: AppColors.purple, size: 45),
-                        ],
+                      Text(
+                        '${(_progress * 100).toInt()}%',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1,
+                        ),
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          LogoCube(letter: 'S', color: AppColors.cyan, size: 45),
-                          LogoCube(letter: 'N', color: AppColors.cyan, size: 45),
-                          LogoCube(letter: 'A', color: AppColors.cyan, size: 45),
-                          LogoCube(letter: 'P', color: AppColors.cyan, size: 45),
-                        ],
+                      const SizedBox(height: 12),
+                      Container(
+                        height: 14,
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.white10),
+                          color: Colors.white.withValues(alpha: 0.05),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Stack(
+                            children: [
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                width: 236 * _progress,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppColors.purple,
+                                      AppColors.purple,
+                                      AppColors.cyan,
+                                    ],
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.purple.withValues(alpha: 0.5),
+                                      blurRadius: 10,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        _statusText.toUpperCase(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.4),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 2,
+                        ),
                       ),
                     ],
                   ),
-                );
-              },
+                ),
+              ],
             ),
-            const SizedBox(height: 60),
-            SizedBox(
-              width: 200,
-              child: Column(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: LinearProgressIndicator(
-                      value: _progress,
-                      minHeight: 6,
-                      backgroundColor: Colors.white12,
-                      valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.secondary),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    _statusText,
-                    style: const TextStyle(color: Colors.white54, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

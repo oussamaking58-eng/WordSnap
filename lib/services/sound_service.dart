@@ -3,30 +3,29 @@ import 'package:audioplayers/audioplayers.dart';
 class SoundService {
   static final SoundService _instance = SoundService._internal();
   factory SoundService() => _instance;
-  SoundService._internal();
+  
+  final AudioPlayer _player = AudioPlayer();
+  bool _enabled = true;
 
-  // On crée une nouvelle instance à la volée qui se détruit toute seule (évite les crashs d'état)
-  Future<void> playPop() async {
+  SoundService._internal() {
+    _player.setReleaseMode(ReleaseMode.stop);
+  }
+
+  void setEnabled(bool enabled) => _enabled = enabled;
+
+  Future<void> _play(String path, {double volume = 1.0}) async {
+    if (!_enabled) return;
     try {
-      await AudioPlayer().play(AssetSource('sounds/pop.mp3'));
+      await _player.stop();
+      await _player.play(AssetSource(path), volume: volume);
     } catch (e) {
-      print("Erreur Pop: $e");
+      // Ignore audio errors in production
     }
   }
 
-  Future<void> playDing() async {
-    try {
-      await AudioPlayer().play(AssetSource('sounds/ding.mp3'));
-    } catch (e) {
-      print("Erreur Ding: $e");
-    }
-  }
-
-  Future<void> playTada() async {
-    try {
-      await AudioPlayer().play(AssetSource('sounds/tada.mp3'));
-    } catch (e) {
-      print("Erreur Tada: $e");
-    }
-  }
+  Future<void> playPop() => _play('sounds/pop.mp3', volume: 0.6);
+  Future<void> playTick() => _play('sounds/pop.mp3', volume: 0.3); // Réutilisation pour l'instant
+  Future<void> playDing() => _play('sounds/ding.mp3');
+  Future<void> playTada() => _play('sounds/tada.mp3');
+  Future<void> playError() => _play('sounds/pop.mp3', volume: 1.0); // Placeholder
 }

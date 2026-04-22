@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/daily_reward_service.dart';
+import '../services/language_service.dart';
 
 class DailyRewardSheet extends StatefulWidget {
   const DailyRewardSheet({super.key});
@@ -11,6 +12,23 @@ class DailyRewardSheet extends StatefulWidget {
 
 class _DailyRewardSheetState extends State<DailyRewardSheet> {
   final DailyRewardService _rewardService = DailyRewardService();
+  final LanguageService _langService = LanguageService();
+
+  @override
+  void initState() {
+    super.initState();
+    _langService.addListener(_rebuild);
+  }
+
+  @override
+  void dispose() {
+    _langService.removeListener(_rebuild);
+    super.dispose();
+  }
+
+  void _rebuild() {
+    if (mounted) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,15 +49,15 @@ class _DailyRewardSheetState extends State<DailyRewardSheet> {
             decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'RÉCOMPENSE JOURNALIÈRE',
+          Text(
+            _langService.translate('daily_reward_title'),
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 2),
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 2),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Connectez-vous chaque jour pour gagner plus !',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+          Text(
+            _langService.translate('daily_reward_subtitle'),
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
           ),
           const SizedBox(height: 30),
           
@@ -84,7 +102,7 @@ class _DailyRewardSheetState extends State<DailyRewardSheet> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
             child: Text(
-              canClaim ? 'RÉCUPÉRER MON CADEAU' : 'REVIENS DEMAIN !',
+              canClaim ? _langService.translate('claim_reward') : _langService.translate('come_back_tomorrow'),
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),
@@ -101,13 +119,13 @@ class _DailyRewardSheetState extends State<DailyRewardSheet> {
 
     return Container(
       decoration: BoxDecoration(
-        color: isToday ? accentColor.withOpacity(0.2) : (isPast ? Colors.white10 : Colors.white.withOpacity(0.05)),
+        color: isToday ? accentColor.withValues(alpha: 0.2) : (isPast ? Colors.white10 : Colors.white.withValues(alpha: 0.05)),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isToday ? accentColor : (isPast ? Colors.green.withOpacity(0.5) : Colors.white12),
+          color: isToday ? accentColor : (isPast ? Colors.green.withValues(alpha: 0.5) : Colors.white12),
           width: isToday ? 2 : 1,
         ),
-        boxShadow: isToday ? [BoxShadow(color: accentColor.withOpacity(0.3), blurRadius: 8)] : [],
+        boxShadow: isToday ? [BoxShadow(color: accentColor.withValues(alpha: 0.3), blurRadius: 8)] : [],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -146,8 +164,8 @@ class _DailyRewardSheetState extends State<DailyRewardSheet> {
 
   void _showSuccessDialog() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Récompense récupérée ! 🎉'),
+      SnackBar(
+        content: Text(_langService.translate('reward_claimed')),
         backgroundColor: Colors.green,
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 
 class LivesService {
   static final LivesService _instance = LivesService._internal();
@@ -12,6 +13,9 @@ class LivesService {
 
   int _lives = 5;
   DateTime? _lastRegen;
+  final _livesController = StreamController<int>.broadcast();
+
+  Stream<int> get livesStream => _livesController.stream;
 
   int get lives => _lives;
   bool get hasLives => _lives > 0;
@@ -25,6 +29,7 @@ class LivesService {
       _lastRegen = DateTime.fromMillisecondsSinceEpoch(lastRegenMs);
     }
     await _regenLives();
+    _livesController.add(_lives);
   }
 
   Future<void> _regenLives() async {
@@ -41,6 +46,7 @@ class LivesService {
       _lives = (_lives + livesToAdd).clamp(0, maxLives);
       _lastRegen = now;
       await _save();
+      _livesController.add(_lives);
     }
   }
 
@@ -49,6 +55,7 @@ class LivesService {
       _lives--;
       _lastRegen ??= DateTime.now();
       await _save();
+      _livesController.add(_lives);
     }
   }
 
@@ -56,6 +63,7 @@ class LivesService {
     if (_lives < maxLives) {
       _lives++;
       await _save();
+      _livesController.add(_lives);
     }
   }
 

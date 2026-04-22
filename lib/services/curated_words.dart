@@ -127,3 +127,32 @@ const List<String> commonFrenchWords = [
   'VICTIME', 'VICTOIRE', 'VILLAGE', 'VISAGES', 'VISITES', 'VITESSE', 'VIVANTS',
   'VOISINS', 'VOITURE', 'VOLONTE', 'VOYAGES',
 ];
+
+const List<String> commonEnglishWords = [
+  'APPLE', 'BEACH', 'BRAIN', 'BREAD', 'BRUSH', 'CHAIR', 'CHEST', 'CHORD', 'CLICK', 'CLOCK',
+  'CLOUD', 'DANCE', 'DIARY', 'DRINK', 'DRIVE', 'EARTH', 'FEAST', 'FIELD', 'FRUIT', 'GLASS',
+  'GRAPE', 'GREEN', 'GROUND', 'GUARD', 'HEART', 'HORSE', 'HOUSE', 'JUICE', 'LIGHT', 'LEMON',
+  'MONEY', 'MUSIC', 'NIGHT', 'OCEAN', 'PARTY', 'PHONE', 'PIANO', 'PILOT', 'PLANE', 'PLANT',
+  'RADIO', 'RIVER', 'ROBOT', 'SHIRT', 'SHOES', 'SMILE', 'SNAKE', 'SPACE', 'SPOON', 'STORM',
+  'TABLE', 'TIGER', 'TOAST', 'TOUCH', 'TRAIN', 'TRUCK', 'VOICE', 'WATER', 'WATCH', 'WHALE',
+  'WORLD', 'WRITE', 'YOUTH', 'ZEBRA',
+  // 6 Letters
+  'ACTION', 'ANIMAL', 'BASKET', 'BOTTLE', 'BRIDGE', 'BRIGHT', 'CAMERA', 'CANCER', 'CASTLE', 'COFFEE',
+  'COOKIE', 'DANGER', 'DEGREE', 'DINNER', 'DREAMY', 'DRIVER', 'ENERGY', 'ENGINE', 'FAMILY', 'FARMER',
+  'FATHER', 'FLIGHT', 'FLOWER', 'FOREST', 'FRIEND', 'GARDEN', 'GLOVES', 'GUITAR', 'HAMMER', 'HEALTH',
+  'HOLLOW', 'HUNGRY', 'ISLAND', 'JACKET', 'JUNGLE', 'KITTEN', 'LADDER', 'LAUGHT', 'LEMONS', 'LETTER',
+  'MARKET', 'MEMORY', 'MIRROR', 'MOBILE', 'MONKEY', 'MOTHER', 'MUSEUM', 'NATURE', 'NUMBER', 'OFFICE',
+  'ORANGE', 'OXYGEN', 'PARENT', 'PEOPLE', 'PEPPER', 'PERSON', 'PLANET', 'PLAYER', 'POCKET', 'POLICE',
+  'PRINCE', 'PUZZLE', 'RABBIT', 'ROCKET', 'SCHOOL', 'SCREEN', 'SEARCH', 'SHADOW', 'SILVER', 'SISTER',
+  'SPIRIT', 'SPRING', 'STREET', 'STRONG', 'SUMMER', 'TARGET', 'TICKET', 'TOMATO', 'TRAVEL', 'VALLEY',
+  'VESSEL', 'VICTOR', 'VILLAGE', 'WINTER', 'YELLOW',
+];
+
+const List<String> commonArabicWords = [
+  'كتاب', 'شمس', 'قمر', 'بحر', 'نهر', 'جبل', 'طريق', 'مدينة', 'قرية', 'بيت',
+  'غرفة', 'باب', 'نافذة', 'كرسي', 'طاولة', 'قلم', 'دفتر', 'مدرسة', 'جامعة', 'طالب',
+  'معلم', 'طبيب', 'مهندس', 'خبز', 'ماء', 'حليب', 'قهوة', 'شاي', 'تفاح', 'موز',
+  'برتقال', 'عنب', 'خيار', 'طماطم', 'بطاطس', 'لحم', 'سمك', 'دجاج', 'أرز', 'عدس',
+  'سماء', 'أرض', 'نور', 'نار', 'هواء', 'ريح', 'مطر', 'ثلج', 'صيف', 'شتاء',
+  'ربيع', 'خريف', 'يوم', 'أسبوع', 'شهر', 'سنة', 'وقت', 'ساعة', 'دقيقة', 'ثانية',
+];

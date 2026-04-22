@@ -76,6 +76,20 @@ class WordService {
        if (validCurated.isNotEmpty) {
           return validCurated[Random().nextInt(validCurated.length)];
        }
+    } else if (lang == AppLanguage.en) {
+       final validCurated = commonEnglishWords.where((w) => w.length == length).toList();
+       if (validCurated.isNotEmpty) {
+          return validCurated[Random().nextInt(validCurated.length)];
+       }
+    } else if (lang == AppLanguage.ar) {
+       // On filtre par longueur si possible, mais les mots arabes varient
+       final validCurated = commonArabicWords.where((w) => w.length == length).toList();
+       if (validCurated.isNotEmpty) {
+          return validCurated[Random().nextInt(validCurated.length)];
+       } else if (commonArabicWords.isNotEmpty) {
+          // Fallback sur n'importe quel mot arabe si la longueur précise manque
+          return commonArabicWords[Random().nextInt(commonArabicWords.length)];
+       }
     }
 
     final words = _dictionaries[lang] ?? {};

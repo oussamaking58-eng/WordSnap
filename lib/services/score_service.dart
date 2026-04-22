@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'season_service.dart';
 
 class ScoreService {
   static final ScoreService _instance = ScoreService._internal();
@@ -114,6 +116,16 @@ class ScoreService {
     }
     _lastPlayed = now;
     await _save();
+
+    // Sync with Firestore for Seasons
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await SeasonService().saveSeasonScore(
+        user.uid,
+        user.displayName ?? 'Joueur',
+        _bestScore,
+      );
+    }
   }
 
   // --- Economie ---

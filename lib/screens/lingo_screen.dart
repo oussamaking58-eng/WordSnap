@@ -9,6 +9,7 @@ import '../services/word_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shop_sheet.dart';
 import '../widgets/end_game_dialog.dart';
+import '../services/sound_service.dart';
 
 enum LetterState { initial, notInWord, inWordWrongSpot, inWordCorrectSpot }
 
@@ -85,6 +86,7 @@ class _LingoScreenState extends State<LingoScreen> {
     if (col != -1) {
       _grid[_currentAttempt][col] = letter;
       HapticFeedback.lightImpact();
+      SoundService().playTick();
     }
   }
 
@@ -93,6 +95,7 @@ class _LingoScreenState extends State<LingoScreen> {
       if (_grid[_currentAttempt][i].isNotEmpty) {
         _grid[_currentAttempt][i] = '';
         HapticFeedback.lightImpact();
+        SoundService().playTick();
         break;
       }
     }
@@ -105,6 +108,12 @@ class _LingoScreenState extends State<LingoScreen> {
     }
 
     String guess = _grid[_currentAttempt].join('');
+
+    if (!_wordService.isValidWord(guess, _langService.currentLanguage)) {
+      _showSnackBar(_langService.translate('not_in_dict'));
+      SoundService().playError();
+      return;
+    }
 
     _calculateStates(guess);
 
@@ -235,7 +244,7 @@ class _LingoScreenState extends State<LingoScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => const ShopSheet(),
+      builder: (context) => ShopSheet(),
     ).then((_) => setState(() {}));
   }
 
@@ -260,7 +269,7 @@ class _LingoScreenState extends State<LingoScreen> {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.purple.withOpacity(0.1),
+                color: AppColors.purple.withValues(alpha: 0.1),
               ),
             ),
           ),
@@ -272,7 +281,7 @@ class _LingoScreenState extends State<LingoScreen> {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.cyan.withOpacity(0.1),
+                color: AppColors.cyan.withValues(alpha: 0.1),
               ),
             ),
           ),
@@ -296,47 +305,76 @@ class _LingoScreenState extends State<LingoScreen> {
   }
 
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.white70),
-            onPressed: () => Navigator.pop(context),
-          ),
-          Column(
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'NIVEAU ${widget.level}',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18),
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70, size: 20),
+                onPressed: () => Navigator.pop(context),
               ),
-              Text(
-                widget.difficulty,
-                style: TextStyle(color: _getDifficultyColor(), fontSize: 10, fontWeight: FontWeight.bold),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      widget.level == 0 ? 'MODE CLASSIQUE' : 'LINGO SNAP',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 18,
+                        letterSpacing: 2,
+                        shadows: [
+                          Shadow(color: AppColors.purple.withValues(alpha: 0.5), blurRadius: 10),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      widget.level == 0 ? widget.difficulty.toUpperCase() : 'NIVEAU ${widget.level} • ${widget.difficulty}',
+                      style: TextStyle(
+                        color: _getDifficultyColor().withValues(alpha: 0.8),
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              GestureDetector(
+                onTap: _showShop,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Text('🪙', style: TextStyle(fontSize: 12)),
+                      const SizedBox(width: 4),
+                      Text('${ScoreService().coins}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                      const SizedBox(width: 2),
+                      const Icon(Icons.add_circle, size: 14, color: Colors.amber),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
-          GestureDetector(
-            onTap: _showShop,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.amber.withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Text('🪙', style: TextStyle(fontSize: 14)),
-                  const SizedBox(width: 6),
-                  Text('${_scoreService.coins}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
-                  const Icon(Icons.add, size: 14, color: Colors.amber),
-                ],
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -369,70 +407,82 @@ class _LingoScreenState extends State<LingoScreen> {
   Widget _buildGridCell(int row, int col) {
     String letter = _grid[row][col];
     LetterState state = _states[row][col];
-    Color baseColor = Colors.white;
+    
+    Color baseColor = Colors.white24;
+    bool isFilled = letter.isNotEmpty;
+    bool isCurrentRow = row == _currentAttempt;
+
     if (state == LetterState.inWordCorrectSpot) baseColor = AppColors.green;
     else if (state == LetterState.inWordWrongSpot) baseColor = AppColors.orange;
-    else if (state == LetterState.notInWord) baseColor = AppColors.red;
-    else if (letter.isNotEmpty) baseColor = AppColors.cyan;
+    else if (state == LetterState.notInWord) baseColor = AppColors.red.withValues(alpha: 0.5);
+    else if (isFilled) baseColor = AppColors.cyan;
 
-    double size = widget.wordLength >= 7 ? 40 : 48;
+    double size = widget.wordLength >= 7 ? 42 : 50;
 
     return Container(
       width: size,
       height: size,
-      margin: const EdgeInsets.symmetric(horizontal: 3),
-      child: Stack(
-        children: [
-          // Glass Effect
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: (state == LetterState.initial ? Colors.white : baseColor).withOpacity(0.1),
-                  border: Border.all(
-                    color: (state == LetterState.initial ? Colors.white24 : baseColor.withOpacity(0.5)),
-                    width: 1.5,
-                  ),
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.white.withOpacity(0.1),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          if (state != LetterState.initial && state != LetterState.notInWord)
+            BoxShadow(
+              color: baseColor.withValues(alpha: 0.4),
+              blurRadius: 12,
+              spreadRadius: 1,
             ),
-          ),
-          // Glow and Content
-          Container(
+          if (isCurrentRow && isFilled && state == LetterState.initial)
+            BoxShadow(
+              color: AppColors.cyan.withValues(alpha: 0.2),
+              blurRadius: 8,
+              spreadRadius: 0,
+            ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                if (state != LetterState.initial && state != LetterState.notInWord)
-                  BoxShadow(color: baseColor.withOpacity(0.3), blurRadius: 10, spreadRadius: 1),
-              ],
+              borderRadius: BorderRadius.circular(10),
+              color: (state == LetterState.initial 
+                ? (isCurrentRow ? Colors.white.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.05))
+                : baseColor.withValues(alpha: 0.2)),
+              border: Border.all(
+                color: (state == LetterState.initial 
+                  ? (isCurrentRow ? Colors.white54 : Colors.white12)
+                  : baseColor.withValues(alpha: 0.8)),
+                width: state == LetterState.initial ? 1 : 2,
+              ),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withValues(alpha: 0.2),
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.2),
+                ],
+              ),
             ),
             child: Center(
               child: Text(
                 letter,
                 style: TextStyle(
-                  fontSize: size * 0.5,
+                  fontSize: size * 0.55,
                   fontWeight: FontWeight.w900,
                   color: Colors.white,
                   shadows: [
                     if (state != LetterState.initial && state != LetterState.notInWord)
                       Shadow(color: baseColor, blurRadius: 10),
+                    Shadow(color: Colors.black.withValues(alpha: 0.3), offset: const Offset(1, 1), blurRadius: 2),
                   ],
                 ),
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -464,9 +514,9 @@ class _LingoScreenState extends State<LingoScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withOpacity(0.5)),
+          border: Border.all(color: color.withValues(alpha: 0.5)),
         ),
         child: Row(
           children: [
@@ -508,59 +558,64 @@ class _LingoScreenState extends State<LingoScreen> {
     bool isSpecial = key == 'ENTER' || key == 'DEL';
     LetterState state = _keyboardStates[key] ?? LetterState.initial;
     
-    Color baseColor = Colors.white;
+    Color baseColor = Colors.white24;
     if (state == LetterState.inWordCorrectSpot) baseColor = AppColors.green;
     else if (state == LetterState.inWordWrongSpot) baseColor = AppColors.orange;
-    else if (state == LetterState.notInWord) baseColor = Colors.black;
+    else if (state == LetterState.notInWord) baseColor = Colors.black.withValues(alpha: 0.5);
 
     return Expanded(
       flex: isSpecial ? 15 : 10,
       child: GestureDetector(
         onTap: () => _onKeyPressed(key),
         child: Container(
-          height: 45,
-          margin: const EdgeInsets.all(2),
-          child: Stack(
-            children: [
-              // Glass Cube Effect
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(6),
-                      color: baseColor.withOpacity(0.15),
-                      border: Border.all(
-                        color: baseColor.withOpacity(0.8),
-                        width: 1.5,
-                      ),
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.white.withOpacity(0.1),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
+          height: 50,
+          margin: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              if (state != LetterState.initial && state != LetterState.notInWord)
+                BoxShadow(color: baseColor.withValues(alpha: 0.2), blurRadius: 8),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: baseColor.withValues(alpha: state == LetterState.initial ? 0.1 : 0.3),
+                  border: Border.all(
+                    color: (state == LetterState.initial ? Colors.white24 : baseColor.withValues(alpha: 0.8)),
+                    width: 1.5,
+                  ),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withValues(alpha: 0.15),
+                      Colors.transparent,
+                    ],
                   ),
                 ),
-              ),
-              // Letter and Glow
-              Center(
-                child: isSpecial 
-                  ? Icon(key == 'DEL' ? Icons.backspace_outlined : Icons.check_circle_outline, size: 18, color: Colors.white)
-                  : Text(
-                      key,
-                      style: const TextStyle(
+                child: Center(
+                  child: isSpecial 
+                    ? Icon(
+                        key == 'DEL' ? Icons.backspace_outlined : Icons.check_circle_outline, 
+                        size: 20, 
                         color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 14,
+                      )
+                    : Text(
+                        key,
+                        style: TextStyle(
+                          color: state == LetterState.notInWord ? Colors.white38 : Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                        ),
                       ),
-                    ),
+                ),
               ),
-            ],
+            ),
           ),
         ),
       ),
