@@ -1,10 +1,11 @@
-# Clean minimal Podfile - no use_frameworks needed when calling xcodebuild directly
 flutter_helper_path = File.join(File.dirname(File.realpath(__FILE__)), 'Flutter', 'generated_helper.rb')
 if File.exist?(flutter_helper_path)
   load flutter_helper_path
 end
 
 platform :ios, '13.0'
+
+use_frameworks! :linkage => :static
 
 target 'Runner' do
   if respond_to?(:flutter_install_all_ios_pods)

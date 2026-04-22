@@ -19,23 +19,26 @@ workflows:
           rm -rf ~/Library/Developer/Xcode/DerivedData
           pod repo update
           pod install
+
+          # CocoaPods sometimes doesn't auto-update Flutter xcconfig files on CI.
+          # Force-inject the xcconfig includes so FRAMEWORK_SEARCH_PATHS reaches Xcode.
+          DEBUG_XCCONFIG="Flutter/Debug.xcconfig"
+          RELEASE_XCCONFIG="Flutter/Release.xcconfig"
+          DEBUG_POD_XCCONFIG="../Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"
+          RELEASE_POD_XCCONFIG="../Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
+
+          grep -qF "$DEBUG_POD_XCCONFIG" "$DEBUG_XCCONFIG" || \
+            echo "#include? \"$DEBUG_POD_XCCONFIG\"" >> "$DEBUG_XCCONFIG"
+          grep -qF "$RELEASE_POD_XCCONFIG" "$RELEASE_XCCONFIG" || \
+            echo "#include? \"$RELEASE_POD_XCCONFIG\"" >> "$RELEASE_XCCONFIG"
+
+          echo "=== Debug.xcconfig ==="
+          cat "$DEBUG_XCCONFIG"
+          echo "=== Release.xcconfig ==="
+          cat "$RELEASE_XCCONFIG"
       - name: Flutter build iOS
         script: |
-          # flutter build ios regenerates GeneratedPluginRegistrant.m with @import
-          # which fails without correct search paths. We call xcodebuild directly
-          # with explicit HEADER_SEARCH_PATHS so __has_include() resolves correctly.
-          PODS_HEADERS="$(pwd)/ios/Pods/Headers/Public"
-          cd ios
-          xcodebuild \
-            -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -configuration Release \
-            -destination 'generic/platform=iOS' \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            EXPANDED_CODE_SIGN_IDENTITY="" \
-            "HEADER_SEARCH_PATHS=\$(inherited) ${PODS_HEADERS} ${PODS_HEADERS}/cloud_firestore ${PODS_HEADERS}/firebase_auth ${PODS_HEADERS}/firebase_core ${PODS_HEADERS}/share_plus ${PODS_HEADERS}/shared_preferences_foundation" \
-            | xcpretty && exit ${PIPESTATUS[0]}
+          flutter build ios --no-codesign
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
