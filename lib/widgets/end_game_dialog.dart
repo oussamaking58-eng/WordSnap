@@ -75,10 +75,10 @@ class _EndGameDialogState extends State<EndGameDialog> {
     String text;
     if (widget.isWin) {
       text = widget.level > 0 
-        ? "🏆 J'ai réussi le niveau ${widget.level} sur WordSnap ! 🎉 Le mot était : ${widget.word.toUpperCase()}"
-        : "🏆 J'ai trouvé le mot ${widget.word.toUpperCase()} sur WordSnap ! 🎉";
+        ? "🏆 J'ai réussi le niveau ${widget.level} sur LingoSnap ! 🎉 Le mot était : ${widget.word.toUpperCase()}"
+        : "🏆 J'ai trouvé le mot ${widget.word.toUpperCase()} sur LingoSnap ! 🎉";
     } else {
-      text = "🕹️ Je joue à WordSnap ! Viens me défier ! 🚀";
+      text = "🕹️ Je joue à LingoSnap ! Viens me défier ! 🚀";
     }
     
     Share.share(text);

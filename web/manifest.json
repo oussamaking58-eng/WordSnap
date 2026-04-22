@@ -1,11 +1,11 @@
 {
-    "name": "wordsnap",
-    "short_name": "wordsnap",
+    "name": "LingoSnap",
+    "short_name": "LingoSnap",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "LingoSnap - L'ultime défi linguistique",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
