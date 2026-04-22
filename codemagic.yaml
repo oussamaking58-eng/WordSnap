@@ -1,30 +1,23 @@
 workflows:
   ios-workflow:
     name: iOS LingoSnap Build
-    instance_type: mac_mini_m1
+    instance_type: mac_mini_m2
     max_build_duration: 60
     environment:
-      flutter: stable
+      flutter: default
       xcode: latest
       cocoapods: default
     scripts:
       - name: Get Flutter dependencies
-        script: |
-          flutter pub get
-          mv ios/Podfile ios/Podfile.tmp || true
-          flutter build ios --config-only --no-codesign
-          mv ios/Podfile.tmp ios/Podfile || true
-      - name: Install CocoaPods
-        script: |
-          cd ios
-          pod install
+        script: flutter pub get
       - name: Flutter build iOS
         script: |
-          flutter build ios --release --no-codesign
+          flutter build ios --no-codesign
     artifacts:
-      - build/ios/iphoneos/*.app
-      - build/ios/iphoneos/*.ipa
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - flutter_drive.log
     publishing:
       email:
         recipients:
-          - ayari.oussema@example.com # Vous recevrez un mail à la fin
+          - oussamaking58@gmail.com
