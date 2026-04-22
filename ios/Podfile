@@ -1,3 +1,5 @@
+load File.join(File.dirname(File.realpath(__FILE__)), 'Flutter', 'generated_helper.rb')
+
 platform :ios, '13.0'
 
 # CocoaPods analytics sends network stats so we can figure out if we're breaking things.
