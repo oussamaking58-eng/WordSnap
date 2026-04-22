@@ -15,11 +15,16 @@ workflows:
         script: |
           # Force Deployment Target to 13.0
           find . -name "project.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*/IPHONEOS_DEPLOYMENT_TARGET = 13.0/g' {} +
-          # Full clean: Pods, symlinks, and Xcode derived data cache
+          # Full clean
           rm -rf ios/Pods ios/Podfile.lock ios/.symlinks
           rm -rf ~/Library/Developer/Xcode/DerivedData
           cd ios
           pod install --repo-update
+          # Inject HEADER_SEARCH_PATHS directly into Xcode project so that
+          # __has_include(<cloud_firestore/...>) resolves correctly
+          cd ..
+          PODS_HEADERS='HEADER_SEARCH_PATHS = ("$(inherited)", "$(PODS_ROOT)/Headers/Public", "$(PODS_ROOT)/Headers/Public/cloud_firestore", "$(PODS_ROOT)/Headers/Public/firebase_auth", "$(PODS_ROOT)/Headers/Public/firebase_core", "$(PODS_ROOT)/Headers/Public/share_plus", "$(PODS_ROOT)/Headers/Public/shared_preferences_foundation");'
+          find . -name "project.pbxproj" -exec sed -i '' "s|ENABLE_BITCODE = NO;|ENABLE_BITCODE = NO; ${PODS_HEADERS}|g" {} +
       - name: Flutter build iOS
         script: |
           flutter build ios --no-codesign
