@@ -344,23 +344,31 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Row(
-                    children: [
-                      LogoCube(letter: 'L', color: AppColors.purple, size: 28),
-                      LogoCube(letter: 'I', color: AppColors.purple, size: 28),
-                      LogoCube(letter: 'N', color: AppColors.purple, size: 28),
-                      LogoCube(letter: 'G', color: AppColors.purple, size: 28),
-                      LogoCube(letter: 'O', color: AppColors.purple, size: 28),
-                      const SizedBox(width: 8),
-                      LogoCube(letter: 'S', color: AppColors.cyan, size: 28),
-                      LogoCube(letter: 'N', color: AppColors.cyan, size: 28),
-                      LogoCube(letter: 'A', color: AppColors.cyan, size: 28),
-                      LogoCube(letter: 'P', color: AppColors.cyan, size: 28),
-                    ],
-                  ),
+                Row(
+                  children: [
+                    Image.asset(
+                      'assets/images/logo.png',
+                      width: 40,
+                      height: 40,
+                      fit: BoxFit.contain,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'LINGOSNAP',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2,
+                        shadows: [
+                          Shadow(
+                            color: AppColors.purple.withValues(alpha: 0.5),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 10),
                 Container(

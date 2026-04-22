@@ -119,29 +119,27 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 AnimatedBuilder(
                   animation: _glowAnimation,
                   builder: (context, child) {
-                    return Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            LogoCube(letter: 'L', color: AppColors.purple, size: 55),
-                            LogoCube(letter: 'I', color: AppColors.purple, size: 55),
-                            LogoCube(letter: 'N', color: AppColors.purple, size: 55),
-                            LogoCube(letter: 'G', color: AppColors.purple, size: 55),
-                            LogoCube(letter: 'O', color: AppColors.purple, size: 55),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            LogoCube(letter: 'S', color: AppColors.cyan, size: 55),
-                            LogoCube(letter: 'N', color: AppColors.cyan, size: 55),
-                            LogoCube(letter: 'A', color: AppColors.cyan, size: 55),
-                            LogoCube(letter: 'P', color: AppColors.cyan, size: 55),
-                          ],
-                        ),
-                      ],
+                    return Container(
+                      width: 180,
+                      height: 180,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.purple.withValues(alpha: 0.3),
+                            blurRadius: _glowAnimation.value * 2,
+                            spreadRadius: _glowAnimation.value / 2,
+                          ),
+                          BoxShadow(
+                            color: AppColors.cyan.withValues(alpha: 0.2),
+                            blurRadius: _glowAnimation.value * 3,
+                          ),
+                        ],
+                      ),
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        fit: BoxFit.contain,
+                      ),
                     );
                   },
                 ),
