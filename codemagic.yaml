@@ -11,7 +11,9 @@ workflows:
       - name: Get Flutter dependencies
         script: |
           flutter pub get
+          mv ios/Podfile ios/Podfile.tmp || true
           flutter build ios --config-only --no-codesign
+          mv ios/Podfile.tmp ios/Podfile || true
       - name: Install CocoaPods
         script: |
           cd ios
