@@ -6,11 +6,6 @@ end
 
 platform :ios, '13.0'
 
-# use_modular_headers! forces CocoaPods to generate Clang module maps for ALL pods.
-# This is required for GeneratedPluginRegistrant.m to use @import statements
-# without use_frameworks! (which conflicts with Firebase binary pods).
-use_modular_headers!
-
 target 'Runner' do
   if respond_to?(:flutter_install_all_ios_pods)
     flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
@@ -25,6 +20,13 @@ post_install do |installer|
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
       config.build_settings['ENABLE_BITCODE'] = 'NO'
+    end
+  end
+
+  # Fix: Ensure Runner target has correct header search paths from Pods
+  installer.aggregate_targets.each do |aggregate_target|
+    aggregate_target.xcconfigs.each do |config_name, config_file|
+      config_file.attributes['HEADER_SEARCH_PATHS'] ||= '$(PODS_ROOT)/Headers/Public'
     end
   end
 end

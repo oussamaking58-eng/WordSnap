@@ -13,9 +13,11 @@ workflows:
           flutter pub get
       - name: Configure iOS
         script: |
+          # Force Deployment Target to 13.0
           find . -name "project.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*/IPHONEOS_DEPLOYMENT_TARGET = 13.0/g' {} +
+          # Full clean of all pod artifacts including symlinks used by flutter
+          rm -rf ios/Pods ios/Podfile.lock ios/.symlinks
           cd ios
-          rm -rf Pods Podfile.lock
           pod install --repo-update
       - name: Flutter build iOS
         script: |
