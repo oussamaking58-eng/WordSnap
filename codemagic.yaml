@@ -8,24 +8,12 @@ workflows:
       xcode: latest
       cocoapods: default
     scripts:
-      - name: Clean and Get dependencies
+      - name: Get Flutter dependencies
         script: |
-          flutter clean
           flutter pub get
       - name: Configure iOS
         script: |
-          # Force Deployment Target to 13.0
           find . -name "project.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*/IPHONEOS_DEPLOYMENT_TARGET = 13.0/g' {} +
-          # Delete and regenerate registrant
-          rm -f ios/Runner/GeneratedPluginRegistrant.*
-          flutter build ios --config-only --no-codesign
-          
-          # HACK: Fix the GeneratedPluginRegistrant.m file if it uses the failing @import
-          # This replaces the module import with a more resilient header import
-          if [ -f ios/Runner/GeneratedPluginRegistrant.m ]; then
-            sed -i '' 's/@import audioplayers_darwin;/#import <audioplayers_darwin\/AudioplayersDarwinPlugin.h>/g' ios/Runner/GeneratedPluginRegistrant.m
-          fi
-          
           cd ios
           rm -rf Pods Podfile.lock
           pod install --repo-update
