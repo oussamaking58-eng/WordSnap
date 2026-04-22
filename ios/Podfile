@@ -6,6 +6,11 @@ end
 
 platform :ios, '13.0'
 
+# use_modular_headers! forces CocoaPods to generate Clang module maps for ALL pods.
+# This is required for GeneratedPluginRegistrant.m to use @import statements
+# without use_frameworks! (which conflicts with Firebase binary pods).
+use_modular_headers!
+
 target 'Runner' do
   if respond_to?(:flutter_install_all_ios_pods)
     flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
