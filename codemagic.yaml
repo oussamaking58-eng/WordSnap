@@ -16,7 +16,7 @@ workflows:
           find . -name "project.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*/IPHONEOS_DEPLOYMENT_TARGET = 13.0/g' {} +
           # Delete stale registrants to force fresh link
           rm -f ios/Runner/GeneratedPluginRegistrant.*
-          # This will now succeed thanks to our 'Safe Podfile'
+          # Safe build to generate helpers
           flutter build ios --config-only --no-codesign
           cd ios
           rm -rf Pods Podfile.lock
