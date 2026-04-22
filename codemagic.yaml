@@ -8,8 +8,10 @@ workflows:
       xcode: latest
       cocoapods: default
     scripts:
-      - name: Get Flutter dependencies
-        script: flutter pub get
+      - name: Clean and Get dependencies
+        script: |
+          flutter clean
+          flutter pub get
       - name: Configure iOS
         script: |
           # Force Deployment Target to 13.0 in project file
