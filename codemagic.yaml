@@ -11,34 +11,68 @@ workflows:
       - name: Get Flutter dependencies
         script: |
           flutter pub get
+
       - name: Configure iOS
         script: |
           cd ios
           pod deintegrate || true
           rm -rf Pods Podfile.lock
           rm -rf ~/Library/Developer/Xcode/DerivedData
+
+          # Use xcodeproj gem to inject a Run Script build phase that patches
+          # GeneratedPluginRegistrant.m BEFORE the compile phase runs.
+          # This replaces the fragile @import statements with NSClassFromString
+          # which works without any module maps or header search paths.
+          ruby << 'RUBYEOF'
+          require 'xcodeproj'
+          project = Xcodeproj::Project.open('Runner.xcodeproj')
+          target = project.targets.find { |t| t.name == 'Runner' }
+
+          unless target.shell_script_build_phases.any? { |p| p.name == 'Patch Plugin Registrant' }
+            phase = target.new_shell_script_build_phase('Patch Plugin Registrant')
+            phase.shell_script = <<~'SCRIPT'
+              REGISTRANT="${SRCROOT}/Runner/GeneratedPluginRegistrant.m"
+              if [ -f "$REGISTRANT" ]; then
+                cat > "$REGISTRANT" << 'OBJCEOF'
+              //
+              //  Generated file. Do not edit.
+              //
+
+              // clang-format off
+
+              #import "GeneratedPluginRegistrant.h"
+
+              @implementation GeneratedPluginRegistrant
+
+              + (void)registerWithRegistry:(NSObject<FlutterPluginRegistry>*)registry {
+                [NSClassFromString(@"FLTFirebaseFirestorePlugin") performSelector:@selector(registerWithRegistrar:) withObject:[registry registrarForPlugin:@"FLTFirebaseFirestorePlugin"]];
+                [NSClassFromString(@"FLTFirebaseAuthPlugin") performSelector:@selector(registerWithRegistrar:) withObject:[registry registrarForPlugin:@"FLTFirebaseAuthPlugin"]];
+                [NSClassFromString(@"FLTFirebaseCorePlugin") performSelector:@selector(registerWithRegistrar:) withObject:[registry registrarForPlugin:@"FLTFirebaseCorePlugin"]];
+                [NSClassFromString(@"FPPSharePlusPlugin") performSelector:@selector(registerWithRegistrar:) withObject:[registry registrarForPlugin:@"FPPSharePlusPlugin"]];
+                [NSClassFromString(@"SharedPreferencesPlugin") performSelector:@selector(registerWithRegistrar:) withObject:[registry registrarForPlugin:@"SharedPreferencesPlugin"]];
+              }
+
+              @end
+              OBJCEOF
+              fi
+            SCRIPT
+            # Insert BEFORE the sources (compile) phase
+            sources_idx = target.build_phases.index(target.source_build_phase)
+            target.build_phases.move(phase, sources_idx)
+            project.save
+            puts "Patch build phase added successfully."
+          else
+            puts "Patch build phase already exists."
+          end
+          RUBYEOF
+
           pod repo update
           pod install
 
-          # CocoaPods sometimes doesn't auto-update Flutter xcconfig files on CI.
-          # Force-inject the xcconfig includes so FRAMEWORK_SEARCH_PATHS reaches Xcode.
-          DEBUG_XCCONFIG="Flutter/Debug.xcconfig"
-          RELEASE_XCCONFIG="Flutter/Release.xcconfig"
-          DEBUG_POD_XCCONFIG="../Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"
-          RELEASE_POD_XCCONFIG="../Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
-
-          grep -qF "$DEBUG_POD_XCCONFIG" "$DEBUG_XCCONFIG" || \
-            echo "#include? \"$DEBUG_POD_XCCONFIG\"" >> "$DEBUG_XCCONFIG"
-          grep -qF "$RELEASE_POD_XCCONFIG" "$RELEASE_XCCONFIG" || \
-            echo "#include? \"$RELEASE_POD_XCCONFIG\"" >> "$RELEASE_XCCONFIG"
-
-          echo "=== Debug.xcconfig ==="
-          cat "$DEBUG_XCCONFIG"
-          echo "=== Release.xcconfig ==="
-          cat "$RELEASE_XCCONFIG"
       - name: Flutter build iOS
         script: |
           flutter build ios --no-codesign
+
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
