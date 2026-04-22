@@ -10,13 +10,10 @@ workflows:
     scripts:
       - name: Get Flutter dependencies
         script: |
-          flutter clean
           flutter pub get
       - name: Configure iOS
         script: |
           cd ios
-          # Full deintegration: removes ALL CocoaPods traces from the Xcode project
-          # so that pod install re-adds xcconfig references completely fresh
           pod deintegrate || true
           rm -rf Pods Podfile.lock
           rm -rf ~/Library/Developer/Xcode/DerivedData
@@ -24,7 +21,21 @@ workflows:
           pod install
       - name: Flutter build iOS
         script: |
-          flutter build ios --no-codesign
+          # flutter build ios regenerates GeneratedPluginRegistrant.m with @import
+          # which fails without correct search paths. We call xcodebuild directly
+          # with explicit HEADER_SEARCH_PATHS so __has_include() resolves correctly.
+          PODS_HEADERS="$(pwd)/ios/Pods/Headers/Public"
+          cd ios
+          xcodebuild \
+            -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            EXPANDED_CODE_SIGN_IDENTITY="" \
+            "HEADER_SEARCH_PATHS=\$(inherited) ${PODS_HEADERS} ${PODS_HEADERS}/cloud_firestore ${PODS_HEADERS}/firebase_auth ${PODS_HEADERS}/firebase_core ${PODS_HEADERS}/share_plus ${PODS_HEADERS}/shared_preferences_foundation" \
+            | xcpretty && exit ${PIPESTATUS[0]}
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
