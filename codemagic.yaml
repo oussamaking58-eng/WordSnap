@@ -9,7 +9,9 @@ workflows:
       cocoapods: default
     scripts:
       - name: Get Flutter dependencies
-        script: flutter pub get
+        script: |
+          flutter pub get
+          flutter precache --ios
       - name: Install CocoaPods
         script: |
           cd ios
