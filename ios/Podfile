@@ -6,6 +6,12 @@ end
 
 platform :ios, '13.0'
 
+# REQUIRED for Firebase XCFrameworks: static frameworks generate proper module maps
+# so that @import cloud_firestore / @import firebase_auth etc. work in
+# GeneratedPluginRegistrant.m.  :linkage => :static avoids dynamic-library
+# issues inside the Flutter app sandbox.
+use_frameworks! :linkage => :static
+
 target 'Runner' do
   if respond_to?(:flutter_install_all_ios_pods)
     flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
@@ -20,13 +26,8 @@ post_install do |installer|
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
       config.build_settings['ENABLE_BITCODE'] = 'NO'
-    end
-  end
-
-  # Fix: Ensure Runner target has correct header search paths from Pods
-  installer.aggregate_targets.each do |aggregate_target|
-    aggregate_target.xcconfigs.each do |config_name, config_file|
-      config_file.attributes['HEADER_SEARCH_PATHS'] ||= '$(PODS_ROOT)/Headers/Public'
+      # Required when using use_frameworks! :linkage => :static with Firebase
+      config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'NO'
     end
   end
 end
