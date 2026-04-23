@@ -72,11 +72,16 @@ workflows:
       - name: Flutter build iOS
         script: |
           flutter build ios --no-codesign
+          # Package the .app into an installable .ipa for Sideloadly
+          mkdir -p build/ios/ipa/Payload
+          cp -r "build/ios/Release-iphoneos/Runner.app" build/ios/ipa/Payload/
+          cd build/ios/ipa
+          zip -r WordSnap.ipa Payload/
+          echo "IPA created: $(pwd)/WordSnap.ipa"
 
     artifacts:
-      - build/ios/ipa/*.ipa
+      - build/ios/ipa/WordSnap.ipa
       - /tmp/xcodebuild_logs/*.log
-      - flutter_drive.log
     publishing:
       email:
         recipients:
