@@ -498,7 +498,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_langService.translate('daily_reward'), style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+                      Text(_langService.translate('daily_reward_title'), style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
