@@ -9,6 +9,7 @@ import '../services/matchmaking_service.dart';
 import '../services/word_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/end_game_dialog.dart';
+import '../widgets/notification_helper.dart';
 import '../services/sound_service.dart';
 
 enum LetterState { initial, notInWord, inWordWrongSpot, inWordCorrectSpot }
@@ -127,9 +128,7 @@ class _DuelGameScreenState extends State<DuelGameScreen> {
 
     // Vérifier le mot dans le dictionnaire
     if (!WordService().isValidWord(guess, _langService.currentLanguage)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_langService.translate('not_in_dict'))),
-      );
+      NotificationHelper.show(context, _langService.translate('not_in_dict'));
       SoundService().playError();
       return;
     }
@@ -343,7 +342,10 @@ class _DuelGameScreenState extends State<DuelGameScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(6, (r) => Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(5, (c) => _buildCell(r, c)),
+          children: List.generate(5, (index) {
+             int c = _langService.isRTL ? 4 - index : index;
+             return _buildCell(r, c);
+          }),
         )),
       ),
     );

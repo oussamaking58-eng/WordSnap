@@ -9,6 +9,7 @@ import '../services/word_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shop_sheet.dart';
 import '../widgets/end_game_dialog.dart';
+import '../widgets/notification_helper.dart';
 import '../services/sound_service.dart';
 
 enum LetterState { initial, notInWord, inWordWrongSpot, inWordCorrectSpot }
@@ -248,10 +249,8 @@ class _LingoScreenState extends State<LingoScreen> {
     ).then((_) => setState(() {}));
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
-    );
+  void _showSnackBar(String message, {bool isError = true}) {
+    NotificationHelper.show(context, message, isError: isError);
   }
 
   @override
@@ -397,7 +396,10 @@ class _LingoScreenState extends State<LingoScreen> {
           padding: const EdgeInsets.only(bottom: 8.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(widget.wordLength, (col) => _buildGridCell(row, col)),
+            children: List.generate(widget.wordLength, (index) {
+              int col = _langService.isRTL ? widget.wordLength - 1 - index : index;
+              return _buildGridCell(row, col);
+            }),
           ),
         );
       }),

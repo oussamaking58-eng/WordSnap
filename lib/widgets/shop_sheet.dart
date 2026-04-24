@@ -3,6 +3,7 @@ import 'dart:ui';
 import '../theme/app_theme.dart';
 import '../services/score_service.dart';
 import '../services/language_service.dart';
+import 'notification_helper.dart';
 
 class ShopSheet extends StatefulWidget {
   const ShopSheet({super.key});
@@ -58,12 +59,7 @@ class _ShopSheetState extends State<ShopSheet> {
       setState(() {
         _scoreService.addCoins(50);
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_langService.translate('reward_claimed')),
-          backgroundColor: Colors.green,
-        ),
-      );
+      NotificationHelper.show(context, _langService.translate('reward_claimed'), isError: false);
     });
   }
 
@@ -116,9 +112,7 @@ class _ShopSheetState extends State<ShopSheet> {
   }
 
   void _showSuccessSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: AppColors.purple),
-    );
+    NotificationHelper.show(context, message, isError: false);
   }
 
   @override

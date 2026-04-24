@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../firebase_options.dart';
 
 import '../services/lives_service.dart';
 import '../services/score_service.dart';
@@ -33,6 +35,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   Future<void> _initializeApp() async {
     try {
+      // 0. Initialiser Firebase
+      setState(() { _statusText = 'Démarrage du système...'; _progress = 0.1; });
+      try {
+         await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      } catch (e) {
+         print("Firebase déjà initialisé ou erreur: $e");
+      }
+
       // 1. Auth Anonyme
       setState(() { _statusText = 'Connexion au serveur...'; _progress = 0.2; });
       await FirebaseAuth.instance.signInAnonymously().timeout(const Duration(seconds: 5));

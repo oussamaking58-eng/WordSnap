@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
@@ -8,15 +9,11 @@ void main() async {
   // 1. S'assurer que les bindings Flutter sont prêts
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 2. Initialiser Firebase très rapidement pour que l'app se lance
-  try {
-     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  } catch (e) {
-     print("Erreur Firebase: $e");
-  }
+  // Initialisation des données locales pour intl (évite l'écran gris sur iOS en mode FR)
+  await initializeDateFormatting();
 
   // 3. LANCER L'APPLICATION IMMÉDIATEMENT SUR LE SPLASH SCREEN
-  // Le reste du chargement (Services, Dictionnaires, Auth) se fera dans le SplashScreen.
+  // Le chargement de Firebase se fera dans le SplashScreen pour qu'il soit visible tout de suite.
   runApp(const LingoSnapApp());
 }
 

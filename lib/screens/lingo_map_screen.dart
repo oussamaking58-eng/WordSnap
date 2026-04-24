@@ -151,31 +151,37 @@ class _LingoMapScreenState extends State<LingoMapScreen> {
             onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                _langService.translate('adventure_mode').toUpperCase(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _langService.translate('adventure_mode').toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              Text(
-                _langService.translate('saga_subtitle').toUpperCase(),
-                style: const TextStyle(
-                  color: Colors.white54,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
+                Text(
+                  _langService.translate('saga_subtitle').toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white54,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const Spacer(),
+          const SizedBox(width: 8),
           GestureDetector(
             onTap: () {
               showModalBottomSheet(
@@ -218,29 +224,29 @@ class _LingoMapScreenState extends State<LingoMapScreen> {
     int wordLen = 5;
     int maxAtt = 6;
 
-    if (level > 35) {
-      difficulty = _langService.translate('difficulty_hard');
-      emoji = '💀';
-      diffColor = AppColors.red;
-      wordLen = 8;
-      maxAtt = 4;
-    } else if (level > 25) {
+    if (level % 5 == 0) { // Niveaux Boss
       difficulty = _langService.translate('difficulty_hard');
       emoji = '🔥';
       diffColor = Colors.deepOrange;
-      wordLen = 8;
-      maxAtt = 5;
-    } else if (level > 15) {
-      difficulty = _langService.translate('difficulty_hard');
-      emoji = '⚡';
-      diffColor = Colors.orange;
       wordLen = 7;
       maxAtt = 5;
-    } else if (level > 5) {
+      if (level % 10 == 0) { // Grand Boss
+        emoji = '💀';
+        diffColor = AppColors.red;
+        wordLen = 8;
+        maxAtt = 4;
+      }
+    } else if (level % 2 == 0) { // Niveaux pairs
       difficulty = _langService.translate('difficulty_medium');
       emoji = '🌟';
       diffColor = AppColors.cyan;
       wordLen = 6;
+      maxAtt = 6;
+    } else { // Niveaux impairs
+      difficulty = _langService.translate('difficulty_easy');
+      emoji = '🌱';
+      diffColor = Colors.green;
+      wordLen = 5;
       maxAtt = 6;
     }
 

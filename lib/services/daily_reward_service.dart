@@ -37,7 +37,10 @@ class DailyRewardService {
   void _applyPenaltyIfNeeded() {
     if (_lastClaimDate == null) return;
     final now = DateTime.now();
-    final diff = now.difference(_lastClaimDate!).inDays;
+    // Comparaison des dates calendaires
+    final lastDate = DateTime(_lastClaimDate!.year, _lastClaimDate!.month, _lastClaimDate!.day);
+    final today = DateTime(now.year, now.month, now.day);
+    final diff = today.difference(lastDate).inDays;
 
     if (diff > 7) {
       // Plus d'une semaine d'absence -> Reset à 1
@@ -58,7 +61,7 @@ class DailyRewardService {
            _lastClaimDate!.day != now.day;
   }
 
-  void claimReward() {
+  Future<void> claimReward() async {
     if (!canClaimToday()) return;
 
     final reward = getRewardForDay(_currentDay);
@@ -81,7 +84,7 @@ class DailyRewardService {
 
     _lastClaimDate = DateTime.now();
     _currentDay = (_currentDay % 30) + 1; // Cycle de 30 jours
-    _save();
+    await _save();
   }
 
   Future<void> _save() async {

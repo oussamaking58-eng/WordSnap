@@ -390,7 +390,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
                   builder: (context) => const SettingsSheet(),
-                );
+                ).then((_) => setState(() {}));
               }),
               const SizedBox(width: 10),
               _buildIconButton(Icons.emoji_events, () {

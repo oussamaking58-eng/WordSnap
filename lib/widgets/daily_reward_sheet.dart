@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/daily_reward_service.dart';
+import '../services/daily_reward_service.dart';
 import '../services/language_service.dart';
+import 'notification_helper.dart';
 
 class DailyRewardSheet extends StatefulWidget {
   const DailyRewardSheet({super.key});
@@ -87,12 +89,13 @@ class _DailyRewardSheetState extends State<DailyRewardSheet> {
           
           const SizedBox(height: 30),
           ElevatedButton(
-            onPressed: canClaim ? () {
-              setState(() {
-                _rewardService.claimReward();
-              });
-              Navigator.pop(context);
-              _showSuccessDialog();
+            onPressed: canClaim ? () async {
+              await _rewardService.claimReward();
+              if (mounted) {
+                setState(() {});
+                Navigator.pop(context);
+                _showSuccessDialog();
+              }
             } : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.purple,
@@ -163,11 +166,6 @@ class _DailyRewardSheetState extends State<DailyRewardSheet> {
   }
 
   void _showSuccessDialog() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_langService.translate('reward_claimed')),
-        backgroundColor: Colors.green,
-      ),
-    );
+    NotificationHelper.show(context, _langService.translate('reward_claimed'), isError: false);
   }
 }

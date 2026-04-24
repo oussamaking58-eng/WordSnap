@@ -4,10 +4,19 @@ import 'package:flutter/services.dart';
 import 'language_service.dart';
 import 'curated_words.dart';
 
+String _removeDiacritics(String str) {
+  const withDia = 'ÀÁÂÃÄÅàáâãäåÒÓÔÕÖØòóôõöøÈÉÊËèéêëÇçÌÍÎÏìíîïÙÚÛÜùúûüÿÑñ';
+  const withoutDia = 'AAAAAAaaaaaaOOOOOOooooooEEEEeeeeCcIIIIiiiiUUUUuuuuyNn';
+  for (int i = 0; i < withDia.length; i++) {
+    str = str.replaceAll(withDia[i], withoutDia[i]);
+  }
+  return str;
+}
+
 Set<String> _parseDictionary(String response) {
   return response
       .split('\n')
-      .map((word) => word.trim().toUpperCase()) // On stocke tout en majuscules pour LingoSnap
+      .map((word) => _removeDiacritics(word.trim()).toUpperCase()) // On stocke tout en majuscules et sans accents
       .where((word) => word.isNotEmpty)
       .toSet();
 }
@@ -67,7 +76,14 @@ class WordService {
   }
 
   bool isValidWord(String word, AppLanguage lang) {
-    return _dictionaries[lang]?.contains(word.trim().toUpperCase()) ?? false;
+    final cleanWord = _removeDiacritics(word.trim()).toUpperCase();
+    
+    // Vérifier les listes sûres d'abord
+    if (lang == AppLanguage.fr && commonFrenchWords.contains(cleanWord)) return true;
+    if (lang == AppLanguage.en && commonEnglishWords.contains(cleanWord)) return true;
+    if (lang == AppLanguage.ar && commonArabicWords.contains(cleanWord)) return true;
+
+    return _dictionaries[lang]?.contains(cleanWord) ?? false;
   }
 
   String getRandomWord(int length, AppLanguage lang) {
